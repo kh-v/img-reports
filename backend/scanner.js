@@ -331,15 +331,170 @@ const teamReport = async (ax,username) => {
     }
 
     console.log(dates)
+}
 
+const productionReport = async (ax,username) => {
+    if (!fs.existsSync(`${__dirname}/../storage/data/${username}/production/reports`)) {
+        fs.mkdirSync(`${__dirname}/../storage/data/${username}/production/reports`, { recursive: true })
+        fs.writeFileSync(`${__dirname}/../storage/data/${username}/production/details.json`, JSON.stringify({
+            start: '2020-01-01',
+            end: '2020-01-01',
+            first_report: null,
+            last_report: null,
+            new: true
+        }, null,4))
+        fs.writeFileSync(`${__dirname}/../storage/data/${username}/production/dates.json`, '[]')
+    }
+
+    let details = JSON.parse(fs.readFileSync(`${__dirname}/../storage/data/${username}/production/details.json`).toString())
+    let all_dates = JSON.parse(fs.readFileSync(`${__dirname}/../storage/data/${username}/production/dates.json`).toString())
+
+    let dates = []
+    let d = moment(details.start, 'YYYY-MM-DD').startOf('month');
+    if (details.new) {
+        details.new = false
+    } else {
+        d = moment(details.end, 'YYYY-MM-DD').startOf('month');
+        // d.add(1, 'day')
+    }
+
+    while(d <= moment().startOf('month')) {
+        dates.push(d.format('YYYY-MM-DD'))
+        d = d.add(1, 'month')
+    }   
+
+    const types = [
+        'MD6',
+        'MD5',
+        'MD4',
+        'MD3',
+        'MD2',
+        'MD1',
+        'BASESHOP',
+        'PERSONAL',
+    ]
+
+    let month_today = moment().startOf('month').format('YYYY-MM-DD')
+    dates = dates.filter(d => {
+        return d === month_today || all_dates.indexOf(d) === -1
+    })
+
+    // dates = ['2024-06-01']
+    for (let i = 0; i < dates.length; i++) {
+        const date = dates[i];
+        console.log(date);
+        const year = moment(date,'YYYY-MM-DD').format('YYYY')
+        const month = moment(date,'YYYY-MM-DD').format('MMMM')
+        let dir = `${__dirname}/../storage/data/${username}/production/reports/${year}/${month}`
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+            
+        let entryData = {}
+        let _date = date.replace(/\//g, '-')
+        for (let ii = 0; ii < types.length; ii++) {
+            const type = types[ii];
+            const params = qs.stringify({
+                type,
+                year,
+                month: moment(date,'YYYY-MM-DD').format('MM'),
+                button:' Generate Report'
+            });
+
+            const config = {
+                method: 'post',
+                url: 'https://img-corp.net/membersonly/production.php',
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                data : params
+            };
+
+            await ax(config)
+            .then(function (response) {
+                if (all_dates.indexOf(_date) == -1)  all_dates.push(_date)
+                let r = htmlParser.parse(response.data)
+                let count = parseInt(r.querySelector('#content > div > div > p').innerText); 
+                let type_entries = []
+                if (count > 0) {
+                    let entries = r.querySelectorAll('#content > div:nth-child(2) > div > div > table tr')
+                    // console.log()
+                    for (let eIdx = 1; eIdx < entries.length; eIdx++) {
+                        const e = entries[eIdx];
+                        let childs = e.querySelectorAll('td')
+
+                        if (childs.length > 0) {
+                            let d = {
+                                provider: childs[0].innerText.trim(),
+                                application_number: childs[1].innerText.trim(),
+                                product_code: childs[2].innerText.trim(),
+                                policy_number: childs[3].innerText.trim(),
+                                policy_status: childs[4].innerText.trim(),
+                                plan_holder: childs[5].innerText.trim(),
+                                plan_name: childs[6].innerText.trim(),
+                                plan_amount: childs[7].innerText.trim(),
+                                installment_amount: childs[8].innerText.trim(),
+                                business_date: childs[9].innerText.trim(),
+                                agent_code_1: childs[10].innerText.trim(),
+                                agent_name_1: childs[11].innerText.trim(),
+                                agent_code_2: childs[12].innerText.trim(),
+                                agent_name_2: childs[13].innerText.trim(),
+                                baseshop: childs[14].innerText.trim(),
+                                hierachy: childs[15].innerText.trim()
+                            }
+            
+                            type_entries.push(d)
+                        }
+                    }
+                }
+                entryData[type] = type_entries
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+            
+        }
+        // console.log(entryData);
+
+        let moved = []
+        let counter = {}
+        for (let tIdx = types.length - 1; tIdx >= 0; tIdx--) {
+            const t = types[tIdx];
+
+            let data_to_write = []
+            for (let teIdx = 0; teIdx < entryData[t].length; teIdx++) {
+                const e = entryData[t][teIdx];
+
+                if (moved.indexOf(e.application_number) === -1) {
+                    moved.push(e.application_number)
+                    data_to_write.push(e)
+                }
+            }
+            counter[t] = data_to_write.length
+            fs.writeFileSync(`${dir}/${t}.json`, JSON.stringify(data_to_write, null, 4))
+        }
+
+        fs.writeFileSync(`${dir}/summary_count.json`, JSON.stringify(counter, null, 4))
+
+        details.end = date
+        if (moved.length > 0) {
+            if (!details.first_report) details.first_report = date,
+            details.last_report = date
+        }
+        fs.writeFileSync(`${__dirname}/../storage/data/${username}/production/details.json`, JSON.stringify(details, null, 4))
+
+        all_dates = _.uniq(all_dates)
+        all_dates.push(date)
+        fs.writeFileSync(`${__dirname}/../storage/data/${username}/production/dates.json`, JSON.stringify(all_dates, null, 4))
+    }
+
+    console.log(dates)
 }
 
 
-(async () => {
+const updateReports = async (username, password, report_type) => {
     // const username = '441485PH'
     // const password = 'rafi'
-    const username = '450723PH'
-    const password = 'Tita@1970'
+    // const username = '450723PH'
+    // const password = 'Tita@1970'
     // const username = '464519PH'
     // const password = 'zysij'
     if (!fs.existsSync(`${__dirname}/../storage/data/${username}`)) {
@@ -401,9 +556,26 @@ const teamReport = async (ax,username) => {
      })
 
      if (green) {
-         await commissionReports(ax, username)
-         await teamReport(ax, username)
+        switch(report_type) {
+            case 'commission':
+                await commissionReports(ax, username)
+                break
+            case 'team':
+                await teamReport(ax, username)
+                break
+            case 'production':
+                await productionReport(ax, username)
+                break
+            default:
+                console.log('Invalid Report Type')
+        }
      } else {
         console.log('Invalid Cookie')
      }
-})();
+}
+
+module.exports = {
+    updateReports
+}
+
+// updateReports('450723PH', 'Tita@1970', 'production')
