@@ -64,7 +64,6 @@ const getSummary = async (req, res) => {
   })
 
   let monthly = _.groupBy(data, d => moment(d.reporting_date, 'YYYY-MM-DD').format('YYYY-MM'))
-
   monthly = _.mapValues(monthly, (grp, m) => {
     const premium = _.sumBy(grp, 'Premium')
     const gross = _.sumBy(grp, 'Gross')
@@ -77,9 +76,21 @@ const getSummary = async (req, res) => {
     return { year: mm[0], month: mm[1], premium, gross, wtax, cbr, net, chargers }
   })
 
+  let reporting_dates = _.groupBy(data, d => d.reporting_date)
+  reporting_dates = _.mapValues(reporting_dates, (grp, m) => {
+    const premium = _.sumBy(grp, 'Premium')
+    const gross = _.sumBy(grp, 'Gross')
+    const wtax = _.sumBy(grp, 'WTax')
+    const cbr = _.sumBy(grp, 'CBR')
+    const net = _.sumBy(grp, 'NET')
+    const chargers = _.sumBy(grp, e => e.NET > 0 ? 0 : e.NET)
+
+    return { date: m, premium, gross, wtax, cbr, net, chargers }
+  })
+
   // console.log(yearly, monthly)
   
-  res.send({ monthly, yearly })
+  res.send({ monthly, yearly, reporting_dates })
 }
 
 const getRateSummary = async (req, res) => {
@@ -128,7 +139,18 @@ const getRateSummary = async (req, res) => {
   
       return { year: mm[0], month: mm[1], premium, gross, wtax, cbr, net }
     })
-    return { monthly, yearly }
+
+    let reporting_dates = _.groupBy(_data, d => d.reporting_date)
+    reporting_dates = _.mapValues(reporting_dates, (grp, m) => {
+      const premium = _.sumBy(grp, 'Premium')
+      const gross = _.sumBy(grp, 'Gross')
+      const wtax = _.sumBy(grp, 'WTax')
+      const cbr = _.sumBy(grp, 'CBR')
+      const net = _.sumBy(grp, 'NET')
+      return { date: m, premium, gross, wtax, cbr, net }
+    })
+
+    return { monthly, yearly, reporting_dates }
   })
 
   

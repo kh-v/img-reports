@@ -4,6 +4,7 @@ const allowedOrigins = [
     'http://localhost:8081',
     'http://127.0.0.1:3001',
     'http://localhost:3003',
+    'http://localhost:3002',
     'http://img.kh-lab.online',
     'https://img.kh-lab.online'
 ];

@@ -36,17 +36,34 @@ export default function Commission() {
 
   const [yearlySummary, SetYearlySummary] = useState([])
   const [montlySummary, SetMonthlySummary] = useState([])
+  const [reportingDatesSummary, SetReportingDatesSummary] = useState([])
   const [rateSummary, SetRateSummary] = useState([])
+  const [commissionList, SetCommissionList] = useState([])
+  const [type, SetType] = useState('yearly')
+
+  const [listFilters, SetListFilters] = useState({
+    dateFrom: moment().subtract(30, 'days').format('YYYY-MM-DD'),
+    dateTo: moment().format('YYYY-MM-DD'),
+    date: 'all',
+    agent: 'all',
+    buss_type: 'all',
+    rate: 'all',
+  })
 
   const getCommissionSummary = (agentCode) => {
     axiosPrivate.get(`${REACT_APP_SERVER}/commission/get_summary\?agentCode\=${agentCode}`)
     .then(res => {
-      let { yearly, monthly } =  res.data
+      let { yearly, monthly, reporting_dates } =  res.data
 
       yearly = _.toArray(yearly)
+      yearly.reverse()
       SetYearlySummary(yearly)
       monthly = _.toArray(monthly)
+      monthly.reverse()
       SetMonthlySummary(monthly)
+      reporting_dates = _.toArray(reporting_dates)
+      reporting_dates.reverse()
+      SetReportingDatesSummary(reporting_dates)
     })
     .catch(err => {
 
@@ -57,14 +74,19 @@ export default function Commission() {
     axiosPrivate.get(`${REACT_APP_SERVER}/commission/get_rate_summary\?agentCode\=${agentCode}`)
     .then(res => {
       let rates = _.mapValues(res.data, (d,r) => {
-        let { yearly, monthly } =  d
+        let { yearly, monthly, reporting_dates } =  d
         yearly = _.toArray(yearly)
         monthly = _.toArray(monthly)
+        reporting_dates = _.toArray(reporting_dates)
+        yearly.reverse()
+        monthly.reverse()
+        reporting_dates.reverse()
         
         return {
           rate: parseFloat(r),
           yearly,
-          monthly
+          monthly, 
+          reporting_dates
         }
       })
 
@@ -78,77 +100,148 @@ export default function Commission() {
     })
   }
 
+  const getCommissionList = (agentCode, dateFrom,dateTo) => {
+    axiosPrivate.get(`${REACT_APP_SERVER}/commission/get_commissions\?agentCode\=${agentCode}&dateFrom=${dateFrom}&dateTo=${dateTo}`)
+    .then(res => {
+    //  console.log(res.data)
+     SetCommissionList(res.data)
+      
+    })
+    .catch(err => {
+
+    })
+  }
+
 
 
   useEffect(() => {
     getCommissionSummary('450723PH')
     getRateCommissionSummary('450723PH')
+    getCommissionList('450723PH', listFilters.dateFrom, listFilters.dateTo)
   }, [])
+
+  let filterOptions = {
+    dates: _.uniq(_.map(commissionList, 'reporting_date')),
+    types: _.uniq(_.map(commissionList, 'Buss Type')),
+    agents: _.uniq(_.map(commissionList, 'Agent Name')),
+    rates: _.uniq(_.map(commissionList, 'Rate')),
+  }
+
+  console.log(filterOptions)
 
   return (
     <CommissionContainer>
-      <TableContainer>
-        <TableTitle>Yearly Reports</TableTitle>
-        <DataTable>
-          <TableHeaders>
-            <TableHeader>Year</TableHeader>
-            <TableHeader>Premium</TableHeader>
-            <TableHeader>Gross</TableHeader>
-            <TableHeader>W-Tax</TableHeader>
-            <TableHeader>CBR</TableHeader>
-            <TableHeader>Charges</TableHeader>
-            <TableHeader>NET</TableHeader>
-          </TableHeaders>
-          <TableBody>
-              {
-                yearlySummary.map(e => (
-                  <TableRow>
-                    <TableCell>{e.year}</TableCell>  
-                    <TableCell>{Round(e.premium, 2)}</TableCell> 
-                    <TableCell>{Round(e.gross, 2)}</TableCell> 
-                    <TableCell>{Round(e.wtax, 2)}</TableCell> 
-                    <TableCell>{Round(e.cbr, 2)}</TableCell> 
-                    <TableCell>{Round(e.chargers, 2)}</TableCell> 
-                    <TableCell>{Round(e.net, 2)}</TableCell> 
-                  </TableRow>
-                ))
-              }
-          </TableBody>
+      <div>
+        <button onClick={() => SetType('yearly')}>Yearly</button>
+        <button onClick={() => SetType('monthly')}>Monthly</button>
+        <button onClick={() => SetType('report_date')}>Report Dates</button>
+        <button onClick={() => SetType('list')}>Commission List</button>
+      </div>
+      {
+        type === 'yearly' ?
+        <TableContainer>
+          <TableTitle>Yearly Reports</TableTitle>
+          <DataTable>
+            <TableHeaders>
+              <TableHeader>Year</TableHeader>
+              <TableHeader>Premium</TableHeader>
+              <TableHeader>Gross</TableHeader>
+              <TableHeader>W-Tax</TableHeader>
+              <TableHeader>CBR</TableHeader>
+              <TableHeader>Charges</TableHeader>
+              <TableHeader>NET</TableHeader>
+            </TableHeaders>
+            <TableBody>
+                {
+                  yearlySummary.map(e => (
+                    <TableRow>
+                      <TableCell>{e.year}</TableCell>  
+                      <TableCell>{Round(e.premium, 2)}</TableCell> 
+                      <TableCell>{Round(e.gross, 2)}</TableCell> 
+                      <TableCell>{Round(e.wtax, 2)}</TableCell> 
+                      <TableCell>{Round(e.cbr, 2)}</TableCell> 
+                      <TableCell>{Round(e.chargers, 2)}</TableCell> 
+                      <TableCell>{Round(e.net, 2)}</TableCell> 
+                    </TableRow>
+                  ))
+                }
+            </TableBody>
 
-        </DataTable>
-      </TableContainer>
-      <TableContainer>
-        <TableTitle>Monthly Reports</TableTitle>
-        <DataTable>
-          <TableHeaders>
-            <TableHeader>Month</TableHeader>
-            <TableHeader>Premium</TableHeader>
-            <TableHeader>Gross</TableHeader>
-            <TableHeader>W-Tax</TableHeader>
-            <TableHeader>CBR</TableHeader>
-            <TableHeader>Charges</TableHeader>
-            <TableHeader>NET</TableHeader>
-          </TableHeaders>
-          <TableBody>
-              {
-                montlySummary.map(e => (
-                  <TableRow>
-                    <TableCell>{moment(e.month,'MM').format('MMMM')} {e.year}</TableCell>  
-                    <TableCell>{Round(e.premium, 2)}</TableCell> 
-                    <TableCell>{Round(e.gross, 2)}</TableCell> 
-                    <TableCell>{Round(e.wtax, 2)}</TableCell> 
-                    <TableCell>{Round(e.cbr, 2)}</TableCell> 
-                    <TableCell>{Round(e.chargers, 2)}</TableCell> 
-                    <TableCell>{Round(e.net, 2)}</TableCell> 
-                  </TableRow>
-                ))
-              }
-          </TableBody>
-        </DataTable>
-      </TableContainer>
+          </DataTable>
+        </TableContainer>
+        :''
+      }
+      {
+        type === 'monthly' ?
+        <TableContainer>
+          <TableTitle>Monthly Reports</TableTitle>
+          <DataTable>
+            <TableHeaders>
+              <TableHeader>Month</TableHeader>
+              <TableHeader>Premium</TableHeader>
+              <TableHeader>Gross</TableHeader>
+              <TableHeader>W-Tax</TableHeader>
+              <TableHeader>CBR</TableHeader>
+              <TableHeader>Charges</TableHeader>
+              <TableHeader>NET</TableHeader>
+            </TableHeaders>
+            <TableBody>
+                {
+                  montlySummary.map(e => (
+                    <TableRow>
+                      <TableCell>{moment(e.month,'MM').format('MMMM')} {e.year}</TableCell>  
+                      <TableCell>{Round(e.premium, 2)}</TableCell> 
+                      <TableCell>{Round(e.gross, 2)}</TableCell> 
+                      <TableCell>{Round(e.wtax, 2)}</TableCell> 
+                      <TableCell>{Round(e.cbr, 2)}</TableCell> 
+                      <TableCell>{Round(e.chargers, 2)}</TableCell> 
+                      <TableCell>{Round(e.net, 2)}</TableCell> 
+                    </TableRow>
+                  ))
+                }
+            </TableBody>
+          </DataTable>
+        </TableContainer>
+        :''
+      }
+      {
+        type === 'report_date' ?
+        <TableContainer>
+          <TableTitle>Reports</TableTitle>
+          <DataTable>
+            <TableHeaders>
+              <TableHeader>Date</TableHeader>
+              <TableHeader>Premium</TableHeader>
+              <TableHeader>Gross</TableHeader>
+              <TableHeader>W-Tax</TableHeader>
+              <TableHeader>CBR</TableHeader>
+              <TableHeader>Charges</TableHeader>
+              <TableHeader>NET</TableHeader>
+            </TableHeaders>
+            <TableBody>
+                {
+                  reportingDatesSummary.map(e => (
+                    <TableRow>
+                      <TableCell>{moment(e.date,'YYYY-MM-DD').format('MMMM D, YYYY')}</TableCell>  
+                      <TableCell>{Round(e.premium, 2)}</TableCell> 
+                      <TableCell>{Round(e.gross, 2)}</TableCell> 
+                      <TableCell>{Round(e.wtax, 2)}</TableCell> 
+                      <TableCell>{Round(e.cbr, 2)}</TableCell> 
+                      <TableCell>{Round(e.chargers, 2)}</TableCell> 
+                      <TableCell>{Round(e.net, 2)}</TableCell> 
+                    </TableRow>
+                  ))
+                }
+            </TableBody>
+          </DataTable>
+        </TableContainer>
+        :''
+      }
       {
         rateSummary.map(r => (
           <div>
+            {
+              type === 'yearly' ?
               <TableContainer>
                 <TableTitle>{Round(r.rate*100,2
                   )}% Yearly Reports</TableTitle>
@@ -178,7 +271,10 @@ export default function Commission() {
 
                 </DataTable>
               </TableContainer>
-
+              :''
+            }
+            {
+              type === 'monthly' ?
               <TableContainer>
                 <TableTitle>{Round(r.rate*100,2
                   )}% Monthly Reports</TableTitle>
@@ -207,8 +303,189 @@ export default function Commission() {
                   </TableBody>
                 </DataTable>
               </TableContainer>
+              :''
+            }
+            {
+              type === 'report_date' ?
+              <TableContainer>
+                <TableTitle>{Round(r.rate*100,2
+                  )}% Reports</TableTitle>
+                <DataTable>
+                  <TableHeaders>
+                    <TableHeader>Date</TableHeader>
+                    <TableHeader>Premium</TableHeader>
+                    <TableHeader>Gross</TableHeader>
+                    <TableHeader>W-Tax</TableHeader>
+                    <TableHeader>CBR</TableHeader>
+                    <TableHeader>NET</TableHeader>
+                  </TableHeaders>
+                  <TableBody>
+                      {
+                        r.reporting_dates.map(e => (
+                          <TableRow>
+                            <TableCell>{moment(e.date,'YYYY-MM-DD').format('MMMM D, YYYY')}</TableCell>  
+                            <TableCell>{Round(e.premium, 2)}</TableCell> 
+                            <TableCell>{Round(e.gross, 2)}</TableCell> 
+                            <TableCell>{Round(e.wtax, 2)}</TableCell> 
+                            <TableCell>{Round(e.cbr, 2)}</TableCell> 
+                            <TableCell>{Round(e.net, 2)}</TableCell> 
+                          </TableRow>
+                        ))
+                      }
+                  </TableBody>
+                </DataTable>
+              </TableContainer>
+              :''
+            }
+
           </div>
         ))
+      }
+      {
+        type === 'list' ?
+        <div>
+          <div>
+            <button onClick={() => {
+              let dateFrom = moment().subtract(30,'days').format('YYYY-MM-DD')
+              let dateTo = moment().format('YYYY-MM-DD')
+              SetListFilters({
+                ...listFilters,
+                dateFrom,
+                dateTo
+              })
+              getCommissionList('450723PH', dateFrom, dateTo)
+            }}>Last 30 Days</button>
+            <button onClick={() => {
+              let dateFrom = moment().subtract(60,'days').format('YYYY-MM-DD')
+              let dateTo = moment().format('YYYY-MM-DD')
+              SetListFilters({
+                ...listFilters,
+                dateFrom,
+                dateTo
+              })
+              getCommissionList('450723PH', dateFrom, dateTo)
+            }}>Last 60 Days</button>
+            <button onClick={() => {
+              let dateFrom = moment().subtract(90,'days').format('YYYY-MM-DD')
+              let dateTo = moment().format('YYYY-MM-DD')
+              SetListFilters({
+                ...listFilters,
+                dateFrom,
+                dateTo
+              })
+              getCommissionList('450723PH', dateFrom, dateTo)
+            }}>Last 90 Days</button>
+            <button onClick={() => {
+              let dateFrom = moment().startOf('year').format('YYYY-MM-DD')
+              let dateTo = moment().format('YYYY-MM-DD')
+              SetListFilters({
+                ...listFilters,
+                dateFrom,
+                dateTo
+              })
+              getCommissionList('450723PH', dateFrom, dateTo)
+            }}>This Year</button>
+            <button onClick={() => {
+              let dateFrom = moment().subtract(1,'year').startOf('year').format('YYYY-MM-DD')
+              let dateTo = moment().subtract(1,'year').endOf('year').format('YYYY-MM-DD')
+              SetListFilters({
+                ...listFilters,
+                dateFrom,
+                dateTo
+              })
+              getCommissionList('450723PH', dateFrom, dateTo)
+            }}>Last Year</button>
+            <button onClick={() => {
+              
+            }}>Custom</button>
+          </div>
+          <div style={{color:'#ffffff', textAlign: 'center'}}>
+            Filters: 
+            <div>
+              Reporting Date 
+              <select onChange={el => SetListFilters({ ...listFilters, date:  el.target.value})}>
+                <option value={'all'}>All</option>
+                {
+                  filterOptions.dates.map(d => <option value={d}>{moment(d,'YYYY-MM-DD').format('MMMM D, YYYY')}</option>)
+                }
+              </select>
+            </div>
+            <div>
+              Agent
+              <select onChange={el => SetListFilters({ ...listFilters, agent:  el.target.value})}>
+                <option value={'all'}>All</option>
+                {
+                  filterOptions.agents.map(d => <option value={d}>{d}</option>)
+                }
+              </select>
+            </div>
+            <div>
+              Buss Type
+              <select onChange={el => SetListFilters({ ...listFilters, buss_type:  el.target.value})}>
+                <option value={'all'}>All</option>
+                {
+                  filterOptions.types.map(d => <option value={d}>{d}</option>)
+                }
+              </select>
+            </div>
+            <div>
+              Rate
+              <select onChange={el => SetListFilters({ ...listFilters, rate: el.target.value})}>
+                <option value={'all'}>All</option>
+                {
+                  filterOptions.rates.map(d => <option value={d}>{Round(d*100,2)}%</option>)
+                }
+              </select>
+            </div>
+          </div>
+
+          <TableContainer>
+            <DataTable>
+              <TableHeaders>
+                <TableHeader>Reporting Date</TableHeader>
+                <TableHeader>Name</TableHeader>
+                <TableHeader>Pol No</TableHeader>
+                <TableHeader>Agent</TableHeader>
+                <TableHeader>Buss Date</TableHeader>
+                <TableHeader>Buss Type</TableHeader>
+                <TableHeader>Premium</TableHeader>
+                <TableHeader>Rate</TableHeader>
+                <TableHeader>Gross</TableHeader>
+                <TableHeader>W-Tax</TableHeader>
+                <TableHeader>CBR</TableHeader>
+                <TableHeader>NET</TableHeader>
+              </TableHeaders>
+              <TableBody>
+                  {
+                  commissionList.filter(e => {
+                    if (listFilters.date !== 'all' && listFilters.date !== e.reporting_date) return false
+                    if (listFilters.agent !== 'all' && listFilters.agent !== e['Agent Name']) return false
+                    if (listFilters.buss_type !== 'all' && listFilters.buss_type !== e['Buss Type']) return false
+                    if (listFilters.rate !== 'all' && parseFloat(listFilters.rate) !== parseFloat(e['Rate'])) return false
+                    return true
+                  })
+                  .map(e => (
+                      <TableRow>
+                        <TableCell>{moment(e.reporting_date,'YYYY-MM-DD').format('MMMM D, YYYY')}</TableCell>  
+                        <TableCell>{e['Name of Insure']}</TableCell>
+                        <TableCell>{e['Pol No']}</TableCell>
+                        <TableCell>{e['Agent Name']}</TableCell>
+                        <TableCell>{e['Buss Date']}</TableCell>
+                        <TableCell>{e['Buss Type']}</TableCell>
+                        <TableCell>{Round(e['Premium'], 2)}</TableCell> 
+                        <TableCell>{Round(e['Rate']*100, 2)}%</TableCell> 
+                        <TableCell>{Round(e['Gross'], 2)}</TableCell> 
+                        <TableCell>{Round(e['WTax'], 2)}</TableCell> 
+                        <TableCell>{Round(e['CBR'], 2)}</TableCell> 
+                        <TableCell>{Round(e['NET'], 2)}</TableCell> 
+                      </TableRow>
+                    ))
+                  }
+              </TableBody>
+            </DataTable>
+          </TableContainer>
+        </div>
+        :''
       }
     </CommissionContainer>
   )
