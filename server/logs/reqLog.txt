@@ -426,3 +426,7 @@
 20240716	03:37:49	f39434fc-e846-4617-b164-8bb4c9aa789b	::1	GET	http://img.kh-lab.online	/commission/get_summary?agentCode=450723PH
 20240716	03:37:49	eb44fff8-d799-4215-9a4f-3bc18014faae	::1	GET	http://img.kh-lab.online	/commission/get_rate_summary?agentCode=450723PH
 20240716	03:37:49	e53557e3-4358-4c72-8bee-7c51941d94bb	::1	GET	http://img.kh-lab.online	/commission/get_rate_summary?agentCode=450723PH
+20240716	12:11:21	8d8d6ff2-fad6-4c23-bce7-65189e58983c	::1	GET	undefined	/update_reports/commission
+20240716	12:11:37	a83ba449-1923-44af-a090-7124fe4a79d0	::1	GET	undefined	/update_reports/commission?agentCode=450723PH
+20240716	12:12:16	5767ec77-fb23-474e-b8dc-3868bef365c9	::1	GET	undefined	/update_reports/team?agentCode=450723PH
+20240716	12:12:43	e6e8385e-a340-4fa5-80fd-33dc2271fb60	::1	GET	undefined	/update_reports/production?agentCode=450723PH

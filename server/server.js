@@ -35,6 +35,7 @@ app.use('/auth', require('./routes/auth'));
 app.use('/refresh', require('./routes/refresh'));
 app.use('/logout', require('./routes/logout'));
 
+app.use('/update_reports', require('./routes/api/update_report'));
 app.use('/commission', require('./routes/api/commission'));
 app.use('/team', require('./routes/api/team'));
 app.use('/production', require('./routes/api/production'));
