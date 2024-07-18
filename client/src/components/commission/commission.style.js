@@ -76,3 +76,94 @@ export const TableCell = styled.td`
   font-weight: 500;
   min-width: 100px;
 `
+
+
+export const TypeContainer = styled.div`
+  padding: 20px;
+`
+
+export const TypeBtn = styled.button`
+  height: 30px;
+  padding: 5px 10px;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  margin-left: 2px;
+
+  ${({active}) => active ? 
+    `
+      background: #1c24e6;
+      color: #ffffff;
+    `:`
+      background: #0C129E;
+      color: #ffffff;
+    `}
+`
+
+
+
+
+export const CommissionListContainer = styled.div`
+  
+`
+
+export const CommissionListDateFilters = styled.div`
+  padding: 20px;
+  padding-bottom: 10px;
+`
+
+export const CommissionListDateBtn = styled.button`
+  height: 20px;
+  padding: 2px 10px;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  margin-left: 2px;
+
+  ${({active}) => active ? 
+    `
+      background: #1c24e6;
+      color: #ffffff;
+    `:`
+      background: #0C129E;
+      color: #ffffff;
+    `}
+`
+
+export const CommissionListFilters = styled.div`
+  padding: 20px;
+  padding-bottom: 10px;
+  color: #ffffff;
+  text-align: center;
+  display: inline-flex;
+
+  >div {
+    margin-left: 10px;
+    font-size:  14px;
+    >input {
+      margin-left: 5px;
+      outline: none;
+      line-height: 20px;
+      height: 20px;
+      text-align: center;
+      background: none;
+      color: #ffffff;
+      border: none;
+      border-bottom: 1px solid #ffffff;
+    }
+
+    >select {
+      margin-left: 5px;
+      outline: none;
+      line-height: 20px;
+      height: 20px;
+      text-align: center;
+      background: none;
+      color: #ffffff;
+      border: none;
+      border-bottom: 1px solid #ffffff;
+
+
+    }
+  }
+`

@@ -13,7 +13,15 @@ import {
   TableHeader,
   TableBody,
   TableRow,
-  TableCell
+  TableCell,
+
+  TypeContainer,
+  TypeBtn,
+
+  CommissionListContainer,
+  CommissionListDateFilters,
+  CommissionListDateBtn,
+  CommissionListFilters
 } from './commission.style'
 
 const {
@@ -40,6 +48,7 @@ export default function Commission() {
   const [rateSummary, SetRateSummary] = useState([])
   const [commissionList, SetCommissionList] = useState([])
   const [type, SetType] = useState('yearly')
+  const [activeDateFilter, SetActiveDateFilter] = useState('30D')
 
   const [listFilters, SetListFilters] = useState({
     dateFrom: moment().subtract(30, 'days').format('YYYY-MM-DD'),
@@ -48,6 +57,7 @@ export default function Commission() {
     agent: 'all',
     buss_type: 'all',
     rate: 'all',
+    keyword: ''
   })
 
   const getCommissionSummary = (agentCode) => {
@@ -129,14 +139,23 @@ export default function Commission() {
 
   console.log(filterOptions)
 
+  const filteredCommissionList =  commissionList.filter(e => {
+    if (listFilters.date !== 'all' && listFilters.date !== e.reporting_date) return false
+    if (listFilters.agent !== 'all' && listFilters.agent !== e['Agent Name']) return false
+    if (listFilters.buss_type !== 'all' && listFilters.buss_type !== e['Buss Type']) return false
+    if (listFilters.rate !== 'all' && parseFloat(listFilters.rate) !== parseFloat(e['Rate'])) return false
+    if (listFilters.keyword.trim() !== '' && e['Name of Insure'].toLowerCase().indexOf(listFilters.keyword.toLowerCase().trim()) === -1) return false
+    return true
+  })
+
   return (
     <CommissionContainer>
-      <div>
-        <button onClick={() => SetType('yearly')}>Yearly</button>
-        <button onClick={() => SetType('monthly')}>Monthly</button>
-        <button onClick={() => SetType('report_date')}>Report Dates</button>
-        <button onClick={() => SetType('list')}>Commission List</button>
-      </div>
+      <TypeContainer>
+        <TypeBtn active={type === 'yearly'} onClick={() => SetType('yearly')}>Yearly</TypeBtn>
+        <TypeBtn active={type === 'monthly'} onClick={() => SetType('monthly')}>Monthly</TypeBtn>
+        <TypeBtn active={type === 'report_date'} onClick={() => SetType('report_date')}>Report Dates</TypeBtn>
+        <TypeBtn active={type === 'list'} onClick={() => SetType('list')}>Commission List</TypeBtn>
+      </TypeContainer>
       {
         type === 'yearly' ?
         <TableContainer>
@@ -343,9 +362,9 @@ export default function Commission() {
       }
       {
         type === 'list' ?
-        <div>
-          <div>
-            <button onClick={() => {
+        <CommissionListContainer>
+          <CommissionListDateFilters>
+            <CommissionListDateBtn active={activeDateFilter === '30D'} onClick={() => {
               let dateFrom = moment().subtract(30,'days').format('YYYY-MM-DD')
               let dateTo = moment().format('YYYY-MM-DD')
               SetListFilters({
@@ -354,8 +373,9 @@ export default function Commission() {
                 dateTo
               })
               getCommissionList('450723PH', dateFrom, dateTo)
-            }}>Last 30 Days</button>
-            <button onClick={() => {
+              SetActiveDateFilter('30D')
+            }}>Last 30 Days</CommissionListDateBtn>
+            <CommissionListDateBtn active={activeDateFilter === '60D'} onClick={() => {
               let dateFrom = moment().subtract(60,'days').format('YYYY-MM-DD')
               let dateTo = moment().format('YYYY-MM-DD')
               SetListFilters({
@@ -364,8 +384,9 @@ export default function Commission() {
                 dateTo
               })
               getCommissionList('450723PH', dateFrom, dateTo)
-            }}>Last 60 Days</button>
-            <button onClick={() => {
+              SetActiveDateFilter('60D')
+            }}>Last 60 Days</CommissionListDateBtn>
+            <CommissionListDateBtn active={activeDateFilter === '90D'} onClick={() => {
               let dateFrom = moment().subtract(90,'days').format('YYYY-MM-DD')
               let dateTo = moment().format('YYYY-MM-DD')
               SetListFilters({
@@ -374,8 +395,9 @@ export default function Commission() {
                 dateTo
               })
               getCommissionList('450723PH', dateFrom, dateTo)
-            }}>Last 90 Days</button>
-            <button onClick={() => {
+              SetActiveDateFilter('90D')
+            }}>Last 90 Days</CommissionListDateBtn>
+            <CommissionListDateBtn active={activeDateFilter === 'Y'} onClick={() => {
               let dateFrom = moment().startOf('year').format('YYYY-MM-DD')
               let dateTo = moment().format('YYYY-MM-DD')
               SetListFilters({
@@ -384,8 +406,9 @@ export default function Commission() {
                 dateTo
               })
               getCommissionList('450723PH', dateFrom, dateTo)
-            }}>This Year</button>
-            <button onClick={() => {
+              SetActiveDateFilter('Y')
+            }}>This Year</CommissionListDateBtn>
+            <CommissionListDateBtn active={activeDateFilter === 'LY'} onClick={() => {
               let dateFrom = moment().subtract(1,'year').startOf('year').format('YYYY-MM-DD')
               let dateTo = moment().subtract(1,'year').endOf('year').format('YYYY-MM-DD')
               SetListFilters({
@@ -394,13 +417,17 @@ export default function Commission() {
                 dateTo
               })
               getCommissionList('450723PH', dateFrom, dateTo)
-            }}>Last Year</button>
-            <button onClick={() => {
+              SetActiveDateFilter('LY')
+            }}>Last Year</CommissionListDateBtn>
+            <CommissionListDateBtn active={false} onClick={() => {
               
-            }}>Custom</button>
-          </div>
-          <div style={{color:'#ffffff', textAlign: 'center'}}>
-            Filters: 
+            }}>Custom</CommissionListDateBtn>
+          </CommissionListDateFilters>
+          <CommissionListFilters>
+            <div>
+              Search Name
+              <input placeholder='Keyword' value={listFilters.keyword} onChange={el => SetListFilters({ ...listFilters, keyword: el.target.value}) } />
+            </div>
             <div>
               Reporting Date 
               <select onChange={el => SetListFilters({ ...listFilters, date:  el.target.value})}>
@@ -437,7 +464,7 @@ export default function Commission() {
                 }
               </select>
             </div>
-          </div>
+          </CommissionListFilters>
 
           <TableContainer>
             <DataTable>
@@ -456,15 +483,8 @@ export default function Commission() {
                 <TableHeader>NET</TableHeader>
               </TableHeaders>
               <TableBody>
-                  {
-                  commissionList.filter(e => {
-                    if (listFilters.date !== 'all' && listFilters.date !== e.reporting_date) return false
-                    if (listFilters.agent !== 'all' && listFilters.agent !== e['Agent Name']) return false
-                    if (listFilters.buss_type !== 'all' && listFilters.buss_type !== e['Buss Type']) return false
-                    if (listFilters.rate !== 'all' && parseFloat(listFilters.rate) !== parseFloat(e['Rate'])) return false
-                    return true
-                  })
-                  .map(e => (
+                {
+                  filteredCommissionList.map(e => (
                       <TableRow>
                         <TableCell>{moment(e.reporting_date,'YYYY-MM-DD').format('MMMM D, YYYY')}</TableCell>  
                         <TableCell>{e['Name of Insure']}</TableCell>
@@ -484,7 +504,7 @@ export default function Commission() {
               </TableBody>
             </DataTable>
           </TableContainer>
-        </div>
+        </CommissionListContainer>
         :''
       }
     </CommissionContainer>
