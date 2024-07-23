@@ -15,7 +15,7 @@ const delay = (time) => {
 const loginCookies = async (username, password, register=false) => {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
-    console.log(username, password)
+    // console.log(username, password)
 
     try {
         // Navigate the page to a URL

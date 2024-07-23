@@ -70,13 +70,13 @@ const updateCommissionReportsTask = async (username=null) => {
             logEvents(`[commission] ${user.username} - Already Up to Date`,'task.log')
           }
         } else {
-          logEvents(`[commission] ] ${user.username} - Dir Does Not Exists`,'taskErr.log')
+          logEvents(`[commission] ${user.username} - Dir Does Not Exists`,'taskErr.log')
         }
       } else {
         logEvents(`[commission] ${user.username} - Another Task Ongoing`,'task.log')
       }
     } else {
-      logEvents(`[commission] ] ${user.username} - Invalid IMG Credential`,'taskErr.log')
+      logEvents(`[commission] ${user.username} - Invalid IMG Credential`,'taskErr.log')
     }
   }
 }
@@ -109,7 +109,7 @@ const updateTeamReportsTask =  async (username=null) => {
         logEvents(`[team] ${user.username} - Another Task Ongoing`,'task.log')
       }
     } else {
-      logEvents(`[team] ] ${user.username} - Invalid IMG Credential`,'taskErr.log')
+      logEvents(`[team] ${user.username} - Invalid IMG Credential`,'taskErr.log')
     }
   }
 }
@@ -141,7 +141,7 @@ const updateProductionReportsTask =  async (username=null) => {
         logEvents(`[production] ${user.username} - Another Task Ongoing`,'task.log')
       }
     } else {
-      logEvents(`[production] ] ${user.username} - Invalid IMG Credential`,'taskErr.log')
+      logEvents(`[production] ${user.username} - Invalid IMG Credential`,'taskErr.log')
     }
   }
 }
