@@ -38,7 +38,7 @@ const updateUser = async (username, token) => {
 
 const insertUser = async (user) => {
   const users = getAllUsers()
-  const userIndex = _.findIndex(users, u => u.username === username) 
+  const userIndex = _.findIndex(users, u => u.username === user.username) 
   if (userIndex === -1) {
     user.created_at = moment().tz('Asia/Manila').format('YYYY-MM-DD HH:mm:ss A Z')
     users.push(user)

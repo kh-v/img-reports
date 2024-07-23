@@ -18,7 +18,7 @@ const handleNewUser = async (req, res) => {
     if (!username || !password || !img_password) return res.status(400).json({ 'message': 'Username and password are required.' });
 
     // check for duplicate usernames in the db
-    const duplicate = usersDB.users.find(person => person.username === user);
+    const duplicate = await getUser(username)
     if (duplicate) return res.sendStatus(409); //Conflict 
 
     try {
@@ -29,11 +29,12 @@ const handleNewUser = async (req, res) => {
             user.img_password = encrypt(img_password)
             user.password = hashedPwd
             await insertUser(user)
-            res.status(201).json({ 'success': `New user ${user.name} - ${user.name}  created!` });
+            res.status(201).json({ 'success': `New user ${user.username} - ${user.name}  created!` });
         } else {
             res.status(401).json({ 'message': 'Invalid IMG credential' });
         }
     } catch (error) {
+        console.log(error)
         res.status(500).json({ 'message': error.message });
     }
 }
