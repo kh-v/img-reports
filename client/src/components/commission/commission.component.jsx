@@ -125,9 +125,9 @@ export default function Commission() {
 
 
   useEffect(() => {
-    getCommissionSummary('450723PH')
-    getRateCommissionSummary('450723PH')
-    getCommissionList('450723PH', listFilters.dateFrom, listFilters.dateTo)
+    getCommissionSummary(auth.username)
+    getRateCommissionSummary(auth.username)
+    getCommissionList(auth.username, listFilters.dateFrom, listFilters.dateTo)
   }, [])
 
   let filterOptions = {
@@ -372,7 +372,7 @@ export default function Commission() {
                 dateFrom,
                 dateTo
               })
-              getCommissionList('450723PH', dateFrom, dateTo)
+              getCommissionList(auth.username, dateFrom, dateTo)
               SetActiveDateFilter('30D')
             }}>Last 30 Days</CommissionListDateBtn>
             <CommissionListDateBtn active={activeDateFilter === '60D'} onClick={() => {
@@ -383,7 +383,7 @@ export default function Commission() {
                 dateFrom,
                 dateTo
               })
-              getCommissionList('450723PH', dateFrom, dateTo)
+              getCommissionList(auth.username, dateFrom, dateTo)
               SetActiveDateFilter('60D')
             }}>Last 60 Days</CommissionListDateBtn>
             <CommissionListDateBtn active={activeDateFilter === '90D'} onClick={() => {
@@ -394,7 +394,7 @@ export default function Commission() {
                 dateFrom,
                 dateTo
               })
-              getCommissionList('450723PH', dateFrom, dateTo)
+              getCommissionList(auth.username, dateFrom, dateTo)
               SetActiveDateFilter('90D')
             }}>Last 90 Days</CommissionListDateBtn>
             <CommissionListDateBtn active={activeDateFilter === 'Y'} onClick={() => {
@@ -405,7 +405,7 @@ export default function Commission() {
                 dateFrom,
                 dateTo
               })
-              getCommissionList('450723PH', dateFrom, dateTo)
+              getCommissionList(auth.username, dateFrom, dateTo)
               SetActiveDateFilter('Y')
             }}>This Year</CommissionListDateBtn>
             <CommissionListDateBtn active={activeDateFilter === 'LY'} onClick={() => {
@@ -416,7 +416,7 @@ export default function Commission() {
                 dateFrom,
                 dateTo
               })
-              getCommissionList('450723PH', dateFrom, dateTo)
+              getCommissionList(auth.username, dateFrom, dateTo)
               SetActiveDateFilter('LY')
             }}>Last Year</CommissionListDateBtn>
             <CommissionListDateBtn active={false} onClick={() => {

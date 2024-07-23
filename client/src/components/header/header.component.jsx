@@ -34,7 +34,7 @@ const {
 export default function Header(props) {
   const navigate = useNavigate();
   const {name, layout, SetLayout, SetOpenSetting, SetUser} = props
-  const { currentUser, logout } = useAuth()
+  const { auth, logout } = useAuth()
   // const { sendMessage, lastMessage, readyState } = useWebSocket(REACT_APP_WS, {
   //   onOpen: (ev) => {
   //     sendMessage(`{ "action": "register_client", "Algo":"${algo}" }`)
@@ -90,7 +90,7 @@ export default function Header(props) {
 
   return (
     <HeaderContainer>
-      <div name={'PROS'}> {pageName}</div>
+      <div name={'PROS'}>{auth.name} <span style={{fontSize: '12px',fontStyle:'italic'}}>({auth.rank}: {auth.username})</span> - {pageName}</div>
 
       <StatusContainer>
         <StatusDateTime><Liveclock /><StatusDotIcon fill={"#5CFD75"} /></StatusDateTime>

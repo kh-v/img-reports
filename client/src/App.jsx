@@ -7,7 +7,9 @@ import PrivateRoutes from './PrivateRoutes';
 import Header from './components/header/header.component';
 // import Login from './components/login/login.component';
 
+import Main from './components/main/main.component'
 import Commission from './components/commission/commission.component';
+import Login from './components/login/login.component';
 
 import {
   AppContainer
@@ -21,6 +23,7 @@ function App() {
 
   useEffect(() => {
     let u = localStorage.getItem('user');
+    console.log(u)
     if (!user) {
       SetUser(u);
     }
@@ -29,18 +32,31 @@ function App() {
     <AppContainer>
       <AuthProvider>
         <Routes>
-          <Route exact  path="/login"  element={ <div></div>} />
-          <Route exact path="/commission"  element={
-              <div>
-                <Header name={'KHLAB'} 
-                  SetOpenSetting={SetOpenSetting}
-                  layout={layout}
-                  SetLayout={SetLayout} 
-                  SetUser={SetUser}
-                  />
-                <Commission />
-              </div>
-            } />
+          <Route exact  path="/login"  element={ <Login /> } />
+          <Route element={<PrivateRoutes/>}>
+            <Route exact path="/"  element={
+                <div>
+                  <Header name={'KHLAB'} 
+                    SetOpenSetting={SetOpenSetting}
+                    layout={layout}
+                    SetLayout={SetLayout} 
+                    SetUser={SetUser}
+                    />
+                  <Main />
+                </div>
+              } />
+            <Route exact path="/commission"  element={
+                <div>
+                  <Header name={'KHLAB'} 
+                    SetOpenSetting={SetOpenSetting}
+                    layout={layout}
+                    SetLayout={SetLayout} 
+                    SetUser={SetUser}
+                    />
+                  <Commission />
+                </div>
+              } />
+          </Route>
         </Routes>
       </AuthProvider>
     </AppContainer>

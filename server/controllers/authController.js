@@ -31,7 +31,7 @@ const handleLogin = async (req, res) => {
 
         await updateUser(foundUser.username, refreshToken)
         res.cookie('jwt', refreshToken, { httpOnly: true, sameSite: 'None', secure: true, maxAge: 72 * 60 * 60 * 1000 });
-        res.json({ accessToken, refreshToken });
+        res.json({ username: foundUser.username, name: foundUser.name, rank: foundUser.rank,accessToken, refreshToken });
     } else {
         res.sendStatus(401);
     }
