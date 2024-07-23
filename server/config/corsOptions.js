@@ -1,8 +1,9 @@
-const allowedOrigins = require('./allowedOrigins');
+const fs = require('fs')
+const DIR = `${__dirname}/../../storage/models/corsAllowed.json`;
 
 const corsOptions = {
     origin: (origin, callback) => {
-        console.log(origin)
+        const allowedOrigins = JSON.parse(fs.readFileSync(DIR).toString())
         if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
             callback(null, true)
         } else {

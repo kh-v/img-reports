@@ -7,8 +7,10 @@ const http = require('http')
 const cookieParser = require('cookie-parser')
 const { parse } = require('url');
 
+require('./scheduler/cronJobs')
+
 const corsOptions = require('./config/corsOptions');
-const { logger } = require('./middleware/logEvents');
+const { logger, logEvents } = require('./middleware/logEvents');
 const errorHandler = require('./middleware/errorHandler');
 const verifyJWT = require('./middleware/verifyJWT');
 const credentials = require('./middleware/credentials');
@@ -36,6 +38,7 @@ app.use('/refresh', require('./routes/refresh'));
 app.use('/logout', require('./routes/logout'));
 
 app.use('/update_reports', require('./routes/api/update_report'));
+app.use(verifyJWT);
 app.use('/commission', require('./routes/api/commission'));
 app.use('/team', require('./routes/api/team'));
 app.use('/production', require('./routes/api/production'));
@@ -47,7 +50,9 @@ app.get('/test', async (req, res) => {
 
 
 app.all('*', (req, res) => {
-    console.log(req.url)
+    let ip = req.socket.remoteAddress ? req.socket.remoteAddress.replace('::ffff:','') : "::";
+    logEvents(`${ip}\t${req.method}\t${req.headers.origin || ''}\t${req.headers.host || ''}\t${req.url} error: 404 Not Found`, 'errLog.log');
+
     res.status(404)
     res.json({ error: '404 Not Found'})
 })

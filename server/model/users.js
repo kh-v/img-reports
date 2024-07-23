@@ -1,64 +1,56 @@
-const { pool } = require('../utils/PostgreSQL')
+const _ = require('lodash')
+const fs = require('fs')
+const moment = require('moment-timezone')
+const DIR = `${__dirname}/../../storage/models/users.json`;
+
+const getAllUsers = () => {
+  let users = []
+  if (fs.existsSync(DIR)) {
+    users =  JSON.parse(fs.readFileSync(DIR)) 
+  } 
+  return users
+}
 
 const getUser = async (username) => {
-  let user = null;
-  await pool.query(`
-    SELECT * FROM pros_alert_app_users
-    WHERE username = '${username}'
-  
-  `)
-  .then(res => {
-    if (res.rows.length > 0) {
-      user = res.rows[0]
-    }
-  })
-
+  const users = getAllUsers()
+  const user = _.find(users, u => u.username === username) || null
   return user
 }
-const getUserByRefreshToken = async (token) => {
-  let user = null;
-  await pool.query(`
-    SELECT * FROM pros_alert_app_users
-    WHERE refresh_token = '${token}'
-  
-  `)
-  .then(res => {
-    if (res.rows.length > 0) {
-      user = res.rows[0]
-    }
-  })
 
+const getUserByRefreshToken = async (token) => {
+  const users = getAllUsers()
+  const user = _.find(users, u => u.token === token) || null
   return user
 }
 
 const updateUser = async (username, token) => {
-  await pool.query(`
-    UPDATE pros_alert_app_users
-    SET 
-      refresh_token = '${token}',
-      updated_at = NOW()
-    WHERE username = '${username}'
-  `)
-  .then(res => {
-
-  })
-
-  return true
+  const users = getAllUsers()
+  const userIndex = _.findIndex(users, u => u.username === username) 
+  if (userIndex !== -1) {
+    users[userIndex].refresh_token = token
+    users[userIndex].updated_at = moment().tz('Asia/Manila').format('YYYY-MM-DD HH:mm:ss A Z')
+    fs.writeFileSync(DIR, JSON.stringify(users, null, 4))
+    return true
+  } else {
+    return false
+  }
 }
 
-const insertUser = async (username, password) => {
-  await pool.query(`
-    INSERT INTO pros_alert_app_users (username,password,created_at)
-    VALUES ('${username}','${password}', NOW())
-  `)
-  .then(res => {
-
-  })
-
-  return true
+const insertUser = async (user) => {
+  const users = getAllUsers()
+  const userIndex = _.findIndex(users, u => u.username === username) 
+  if (userIndex === -1) {
+    user.created_at = moment().tz('Asia/Manila').format('YYYY-MM-DD HH:mm:ss A Z')
+    users.push(user)
+    fs.writeFileSync(DIR, JSON.stringify(users, null, 4))
+    return true
+  } else {
+    return false
+  }
 }
 
 module.exports = {
+  getAllUsers,
   getUser,
   updateUser,
   insertUser,

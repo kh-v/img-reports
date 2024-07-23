@@ -28,7 +28,6 @@ const getCommissions = async (req, res) => {
       data = data.concat(d)
     }
   }
-  console.log(data)
   res.send(data)
 }
 

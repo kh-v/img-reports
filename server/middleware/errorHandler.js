@@ -1,8 +1,9 @@
 const { logEvents } = require('./logEvents');
 
 const errorHandler = (err, req, res, next) => {
-    logEvents(`${err.name}: ${err.message}`, 'errLog.txt');
-    console.error(err.stack)
+    let ip = req.socket.remoteAddress ? req.socket.remoteAddress.replace('::ffff:','') : "::";
+    logEvents(`${ip}\t${req.method}\t${req.headers.origin || ''}\t${req.headers.host || ''}\t${req.url} ${err.name}: ${err.message}`, 'errLog.log');
+    // console.error(err.stack)
     res.status(500).send(err.message);
 }
 

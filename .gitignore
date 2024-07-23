@@ -1,4 +1,7 @@
 /storage/data
+/storage/models
+/storage/logs
+/storage/images
 
 /backend/node_modules
 /client/node_modules

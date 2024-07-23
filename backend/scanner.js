@@ -6,9 +6,16 @@ const puppeteer = require('puppeteer');
 const moment = require('moment-timezone');
 const _ = require('lodash')
 
-const loginCookies = async (username, password) => {
+const delay = (time) => {
+    return new Promise((resolve) => { 
+        setTimeout(resolve, time)
+    });
+ }
+
+const loginCookies = async (username, password, register=false) => {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
+    console.log(username, password)
 
     try {
         // Navigate the page to a URL
@@ -21,6 +28,32 @@ const loginCookies = async (username, password) => {
         await page.click('#button')
         // await page.screenshot({path: 'example2.png'});
         await page.waitForSelector('.img-agent-banner');
+        await page.waitForSelector('.agent-name');
+        let name = await page.locator('.agent-name').waitHandle()
+        name = (await name?.evaluate(el => el.textContent.replace('Hi!','').trim().split(/[\n\:]/gi))).map(e => {
+            return e.trim()
+        })
+
+        let users = JSON.parse(fs.readFileSync(`${__dirname}/../storage/models/users.json`).toString())
+        let userIndex = _.findIndex(users, u => u.username.toUpperCase() === name[2])
+        if (userIndex !== -1) {
+            let change = false
+            if (users[userIndex].name !== name[0]) {
+                users[userIndex].name = name[0]
+                users[userIndex].rank = name[1]
+                users[userIndex].username = name[2]
+                users[userIndex].invalid_img_credential = false 
+                change = true
+            }
+
+            if (users[userIndex].invalid_img_credential || users[userIndex].invalid_img_credential === undefined) {
+                users[userIndex].invalid_img_credential = false 
+                change =  true
+            }
+
+            if (change) fs.writeFileSync(`${__dirname}/../storage/models/users.json`, JSON.stringify(users,null,4))
+        }
+
         // await page.screenshot({path: 'example1.png'});
         const cookies = await page.cookies()
         await browser.close();
@@ -31,8 +64,24 @@ const loginCookies = async (username, password) => {
             cookieStr.push(`${c.name}=${c.value}`)
         }
 
-        return cookieStr.join('; ')
+        if (register) {
+            return {
+                name: name[0],
+                username: name[2],
+                rank: name[1],
+                invalid_img_credential: false
+            }
+        } else {
+            return cookieStr.join('; ')
+        }
     } catch (error) {
+        let users = JSON.parse(fs.readFileSync(`${__dirname}/../storage/models/users.json`).toString())
+        let userIndex = _.findIndex(users, u => u.username.toUpperCase() === username.toUpperCase())
+        if (userIndex !== -1) {
+            users[userIndex].invalid_img_credential = true 
+            fs.writeFileSync(`${__dirname}/../storage/models/users.json`, JSON.stringify(users,null,4))
+        }
+
         await browser.close();
         return null;
     }
@@ -58,6 +107,7 @@ const commissionReports = async (ax, username) => {
 
     let dates = []
     let d = moment(details.start, 'YYYY-MM-DD');
+    let firstChecking =  details.new 
     if (details.new) {
         details.new = false
     } else {
@@ -107,6 +157,7 @@ const commissionReports = async (ax, username) => {
         'NET'
     ]
 
+    let newReports = []
     for (let i = 0; i < dates.length; i++) {
         const date = dates[i];
         console.log(date)
@@ -156,6 +207,9 @@ const commissionReports = async (ax, username) => {
                     }
                 }
             }
+            if (withReport) {
+                newReports.push(`${date} - ${ entryData.length > 0 ?  "With Commission" : "No Commission"}`)
+            }
             console.log(date, withReport ? "With Data" : "No Data" )
         })
         .catch(function (error) {
@@ -186,6 +240,9 @@ const commissionReports = async (ax, username) => {
     all_dates = _.uniq(all_dates)
     fs.writeFileSync(`${__dirname}/../storage/data/${username}/commission/dates.json`, JSON.stringify(all_dates,null, 4))
 
+    if (firstChecking) fs.writeFileSync(`${__dirname}/../storage/data/${username}/commission/first_scan.json`, JSON.stringify(newReports, null, 4))
+    fs.writeFileSync(`${__dirname}/../storage/data/${username}/commission/last_scan.json`, JSON.stringify(newReports, null, 4))
+
 }
 
 const teamReport = async (ax,username) => {
@@ -206,6 +263,8 @@ const teamReport = async (ax,username) => {
 
     let dates = []
     let d = moment(details.start, 'YYYY-MM-DD').startOf('month');
+
+    let firstChecking =  details.new 
     if (details.new) {
         details.new = false
     } else {
@@ -234,6 +293,8 @@ const teamReport = async (ax,username) => {
         return d === month_today || all_dates.indexOf(d) === -1
     })
 
+    let newRecruit = {}
+    let todays_date = moment().tz('Asia/Manila').format('MM/DD/YYYY')
     for (let i = 0; i < dates.length; i++) {
         const date = dates[i];
         const year = moment(date,'YYYY-MM-DD').format('YYYY')
@@ -304,15 +365,34 @@ const teamReport = async (ax,username) => {
             const t = types[tIdx];
 
             let data_to_write = []
+            let dates_recruits = {}
             for (let teIdx = 0; teIdx < entryData[t].length; teIdx++) {
                 const e = entryData[t][teIdx];
 
                 if (moved.indexOf(e.agent_code) === -1) {
                     moved.push(e.agent_code)
+
+                    if (!dates_recruits[e['date_started']]) dates_recruits[e['date_started']] = 0
+                    dates_recruits[e['date_started']] += 1
+                    data_to_write.push(e)
+
                     data_to_write.push(e)
                 }
             }
             counter[t] = data_to_write.length
+
+            if (firstChecking) {
+                let d_keys = _.keys(dates_recruits)
+                for (let dIdx = 0; dIdx < d_keys.length; dIdx++) {
+                    const d_key = d_keys[dIdx];
+                    if (!newRecruit[d_key]) newRecruit[d_key] = []
+                    newRecruit[d_key].push(`${t} - ${dates_recruits[d_key]}`)
+                }
+            } else if (dates_recruits[todays_date]) {
+                if (!newRecruit[todays_date]) newRecruit[todays_date] = []
+                newRecruit[todays_date].push(`${t} - ${dates_recruits[todays_date]}`)
+            }
+
             fs.writeFileSync(`${dir}/${t}.json`, JSON.stringify(data_to_write, null, 4))
         }
 
@@ -330,7 +410,8 @@ const teamReport = async (ax,username) => {
         fs.writeFileSync(`${__dirname}/../storage/data/${username}/team/dates.json`, JSON.stringify(all_dates, null, 4))
     }
 
-    console.log(dates)
+    if (firstChecking) fs.writeFileSync(`${__dirname}/../storage/data/${username}/team/first_scan.json`, JSON.stringify(newRecruit, null, 4))
+    fs.writeFileSync(`${__dirname}/../storage/data/${username}/team/last_scan.json`, JSON.stringify(newRecruit, null, 4))
 }
 
 const productionReport = async (ax,username) => {
@@ -351,6 +432,7 @@ const productionReport = async (ax,username) => {
 
     let dates = []
     let d = moment(details.start, 'YYYY-MM-DD').startOf('month');
+    let firstChecking =  details.new 
     if (details.new) {
         details.new = false
     } else {
@@ -380,6 +462,8 @@ const productionReport = async (ax,username) => {
     })
 
     // dates = ['2024-06-01']
+    let newProduction = {}
+    let todays_date = moment().tz('Asia/Manila').format('MM/DD/YYYY')
     for (let i = 0; i < dates.length; i++) {
         const date = dates[i];
         console.log(date);
@@ -460,15 +544,32 @@ const productionReport = async (ax,username) => {
             const t = types[tIdx];
 
             let data_to_write = []
+            let dates_productions = {}
             for (let teIdx = 0; teIdx < entryData[t].length; teIdx++) {
                 const e = entryData[t][teIdx];
 
                 if (moved.indexOf(e.application_number) === -1) {
                     moved.push(e.application_number)
+
+                    if (!dates_productions[e['business_date']]) dates_productions[e['business_date']] = 0
+                    dates_productions[e['business_date']] += 1
                     data_to_write.push(e)
                 }
             }
             counter[t] = data_to_write.length
+            if (firstChecking) {
+                let d_keys = _.keys(dates_productions)
+                for (let dIdx = 0; dIdx < d_keys.length; dIdx++) {
+                    const d_key = d_keys[dIdx];
+                    if (!newProduction[d_key]) newProduction[d_key] = []
+                    newProduction[d_key].push(`${t} - ${dates_productions[d_key]}`)
+                }
+
+            } else if (dates_productions[todays_date]) {
+                if (!newProduction[todays_date]) newProduction[todays_date] = []
+                newProduction[todays_date].push(`${t} - ${dates_productions[todays_date]}`)
+            }
+
             fs.writeFileSync(`${dir}/${t}.json`, JSON.stringify(data_to_write, null, 4))
         }
 
@@ -484,9 +585,11 @@ const productionReport = async (ax,username) => {
         all_dates = _.uniq(all_dates)
         all_dates.push(date)
         fs.writeFileSync(`${__dirname}/../storage/data/${username}/production/dates.json`, JSON.stringify(all_dates, null, 4))
+
     }
 
-    console.log(dates)
+    if (firstChecking) fs.writeFileSync(`${__dirname}/../storage/data/${username}/production/first_scan.json`, JSON.stringify(newProduction, null, 4))
+    fs.writeFileSync(`${__dirname}/../storage/data/${username}/production/last_scan.json`, JSON.stringify(newProduction, null, 4))
 }
 
 
@@ -497,6 +600,7 @@ const updateReports = async (username, password, report_type) => {
     // const password = 'Tita@1970'
     // const username = '464519PH'
     // const password = 'zysij'
+    username = username.toString()
     if (!fs.existsSync(`${__dirname}/../storage/data/${username}`)) {
         fs.mkdirSync(`${__dirname}/../storage/data/${username}`, { recursive: true })
     }
@@ -551,6 +655,25 @@ const updateReports = async (username, password, report_type) => {
      }).then(async res => {
         let r = htmlParser.parse(res.data)
         green = r.querySelector('.img-agent-banner') ? true : false
+        if (green) {
+            let name = r.querySelector('.agent-name').textContent.replace('Hi!','').trim().split(/[\n\:]/gi).map(e => {
+                return e.trim()
+            })
+
+            let users = JSON.parse(fs.readFileSync(`${__dirname}/../storage/models/users.json`).toString())
+            let userIndex = _.findIndex(users, u => u.username === name[2])
+            if (userIndex !== -1) {
+                if (users[userIndex].name !== name[0]) {
+                    users[userIndex].name = name[0]
+                    fs.writeFileSync(`${__dirname}/../storage/models/users.json`, JSON.stringify(users,null,4))
+                }
+              
+                if (users[userIndex].rank !== name[1]) {
+                    users[userIndex].rank = name[1]
+                    fs.writeFileSync(`${__dirname}/../storage/models/users.json`, JSON.stringify(users,null,4))
+                }
+            }
+        }
      }).catch(err => {
         console.log(err)
      })
@@ -575,7 +698,6 @@ const updateReports = async (username, password, report_type) => {
 }
 
 module.exports = {
-    updateReports
+    updateReports,
+    loginCookies
 }
-
-// updateReports('450723PH', 'Tita@1970', 'production')

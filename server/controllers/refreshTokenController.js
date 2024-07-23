@@ -1,7 +1,4 @@
 const {
-    getUser,
-    updateUser,
-    insertUser,
     getUserByRefreshToken
 } = require('../model/users')
 
