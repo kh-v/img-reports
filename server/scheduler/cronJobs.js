@@ -5,7 +5,8 @@ const { logEvents } = require('../middleware/logEvents');
 const {
   updateCommissionReportsTask,
   updateProductionReportsTask,
-  updateTeamReportsTask
+  updateTeamReportsTask,
+  recheckInvalidImgCredentials
 } = require('./tasks')
 
 const updateCommissionsReportJob = CronJob.from({
@@ -33,6 +34,16 @@ const updateProductionReportJob = CronJob.from({
   onTick: async () => {
     logEvents('Start Update Production Reports','scheduler.log')
     updateProductionReportsTask()
+  },
+  start: true,
+  timeZone: 'Asia/Manila'
+});
+
+const recheckInvalidImgCredentialsJob = CronJob.from({
+  cronTime: '0 0,6,12,18 * * *',
+  onTick: async () => {
+    logEvents('Recheck Invalid Img Credentials','scheduler.log')
+    recheckInvalidImgCredentials()
   },
   start: true,
   timeZone: 'Asia/Manila'

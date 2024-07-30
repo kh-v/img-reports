@@ -3,7 +3,7 @@ const moment = require('moment-timezone');
 const { logEvents } = require('../middleware/logEvents');
 
 const {
-  getAllUsers
+  getAllUsers, getUser, updateUserData
 } = require('../model/users')
 
 const {
@@ -146,8 +146,36 @@ const updateProductionReportsTask =  async (username=null) => {
   }
 }
 
+
+const recheckInvalidImgCredentials =  async () => {
+  let users = await getAllUsers()
+  for (let i = 0; i < users.length; i++) {
+    let user = users[i];
+    if (user) {
+      if (user.invalid_img_credential && user.creds_failed < 3) {
+        logEvents(`[recheck IMG creds] ${user.username} - Start Checking`,'task.log')
+        if (user.creds_failed === undefined) user.creds_failed = 0
+        const password =  decrypt(user.img_password)
+        let res = await loginCookies(user.username, password)
+        if (!res) {
+          updateUserData(user.username, { creds_failed: user.creds_failed + 1 })
+          logEvents(`[recheck IMG creds] ${user.username} - Credential Failed (tries: ${user.creds_failed + 1 })`,'task.log')
+        } else {
+          logEvents(`[recheck IMG creds] ${user.username} - Credential Passed`,'task.log')
+        }
+        logEvents(`[recheck IMG creds] ${user.username} - Done Checking`,'task.log')
+      } else {
+        if (user.creds_failed  > 0 || user.creds_failed === undefined) {
+          updateUserData(user.username, { creds_failed: 0 })
+        }
+      }
+    }
+  }
+}
+
 module.exports = {
   updateCommissionReportsTask,
   updateTeamReportsTask,
-  updateProductionReportsTask
+  updateProductionReportsTask,
+  recheckInvalidImgCredentials
 }

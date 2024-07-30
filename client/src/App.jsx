@@ -10,6 +10,7 @@ import Header from './components/header/header.component';
 import Main from './components/main/main.component'
 import Commission from './components/commission/commission.component';
 import Login from './components/login/login.component';
+import Team from './components/team/team.component';
 
 import {
   AppContainer
@@ -54,6 +55,17 @@ function App() {
                     SetUser={SetUser}
                     />
                   <Commission />
+                </div>
+              } />
+            <Route exact path="/team"  element={
+                <div>
+                  <Header name={'KHLAB'} 
+                    SetOpenSetting={SetOpenSetting}
+                    layout={layout}
+                    SetLayout={SetLayout} 
+                    SetUser={SetUser}
+                    />
+                  <Team />
                 </div>
               } />
           </Route>
