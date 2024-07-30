@@ -223,7 +223,7 @@ export default function Team() {
             </TableHeaders>
             <TableBody>
                 {
-                  _.orderBy(_.toArray(reportingDatesSummary), e => parseInt(moment(e,'YYYY-MM-DD').format('YYYYMMDD')), 'desc').map(e => (
+                  _.orderBy(_.toArray(reportingDatesSummary), e => parseInt(moment(e.date,'YYYY-MM-DD').format('YYYYMMDD')), 'desc').map(e => (
                     <TableRow>
                       <TableCell>{moment(e.date, 'YYYY-MM-DD').format('MMMM D, YYYY')}</TableCell>  
                       {
