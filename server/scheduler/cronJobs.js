@@ -40,7 +40,7 @@ const updateProductionReportJob = CronJob.from({
 });
 
 const recheckInvalidImgCredentialsJob = CronJob.from({
-  cronTime: '0 0,6,12,18 * * *',
+  cronTime: '0 5,12,17,23 * * *',
   onTick: async () => {
     logEvents('Recheck Invalid Img Credentials','scheduler.log')
     recheckInvalidImgCredentials()
