@@ -58,7 +58,7 @@ const getSummary = async (req, res) => {
     const wtax = _.sumBy(grp, 'WTax')
     const cbr = _.sumBy(grp, 'CBR')
     const net = _.sumBy(grp, 'NET')
-    const chargers = _.sumBy(grp, e => e.NET <= 0 ? 0 : e.NET)
+    const chargers = _.sumBy(grp, e => e.NET >= 0 ? 0 : e.NET)
     return { year, premium, gross, wtax, cbr, net, chargers }
   })
 

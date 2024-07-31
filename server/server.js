@@ -42,6 +42,7 @@ app.use(verifyJWT);
 app.use('/commission', require('./routes/api/commission'));
 app.use('/team', require('./routes/api/team'));
 app.use('/production', require('./routes/api/production'));
+app.use('/user', require('./routes/api/user'));
 
 app.get('/test', async (req, res) => {
     console.log('aaaa')

@@ -40,7 +40,7 @@ const types = [
 ]
 
 export default function Team() {
-  const { auth } = useAuth()
+  const { auth, activeAgent } = useAuth()
   const axiosPrivate = useAxiosPrivate()
 
   const [allTeam, SetAllTeam] = useState([])
@@ -115,7 +115,7 @@ export default function Team() {
   }
 
   useEffect(() => {
-    getTeam(auth.username)
+    getTeam(activeAgent.username)
   }, [])
 
   const dateFrom = moment(  listFilters.dateFrom, 'YYYY-MM-DD')

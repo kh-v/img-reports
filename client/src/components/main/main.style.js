@@ -35,8 +35,8 @@ export const ReportsContainer = styled.div`
     background: #292d33;
     font-size: 20px;
     font-weight: 600;
-    margin-bottom: 30px;
-    line-height: 50px;
+    margin-bottom: 10px;
+    line-height: 40px;
   }
 
   >div:nth-child(1) {
@@ -59,6 +59,23 @@ export const ReportsContainer = styled.div`
       font-size: 12px;
       line-height: 20px;
     }
+
+    select {
+      outline: none;
+      background:  none;
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 600;
+      line-height: 30px;
+      border: none;
+      border-bottom: 1px solid #ffffff;
+    }
+  }
+
+  >div:nth-child(5) {
+      font-size: 14px;
+      line-height: 25px;
+      background: red;
   }
 `
 

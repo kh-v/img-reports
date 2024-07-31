@@ -161,6 +161,7 @@ const recheckInvalidImgCredentials =  async () => {
           updateUserData(user.username, { creds_failed: user.creds_failed + 1 })
           logEvents(`[recheck IMG creds] ${user.username} - Credential Failed (tries: ${user.creds_failed + 1 })`,'task.log')
         } else {
+          updateUserData(user.username, { invalid_img_credential: false })
           logEvents(`[recheck IMG creds] ${user.username} - Credential Passed`,'task.log')
         }
         logEvents(`[recheck IMG creds] ${user.username} - Done Checking`,'task.log')

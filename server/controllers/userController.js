@@ -1,7 +1,4 @@
-const {
-  getUser,
-  updateUserData
-} = require('../model/users')
+const userModel = require('../model/users')
 
 const {
   encrypt
@@ -14,7 +11,7 @@ const {
 
 const updateUser = async (req, res) => {
   const { username, img_password } = req.body;
-  let user = await getUser(username)
+  let user = await userModel.getUser(username)
 
   if (user) {
     let user_update = await loginCookies(username, img_password)
@@ -25,7 +22,7 @@ const updateUser = async (req, res) => {
         img_password: encrypt(img_password)
       }
 
-      await updateUserData(user)
+      await userModel.updateUserData(user)
       res.status(201).json({ 'success': `IMG credential updated` });
     } else {
       res.status(401).json({ 'message': 'Invalid IMG credential' });
@@ -35,4 +32,31 @@ const updateUser = async (req, res) => {
   res.status(500);
 }
 
-module.exports = { updateUser };
+const getAllUsers = async (req, res) => {
+  const { username } = req.query;
+  let user = await userModel.getUser(username)
+  if (user) {
+
+    if (user.admin) {
+      let users = await userModel.getAllUsers()
+      users = users.map(e => {
+        return {
+          username: e.username,
+          name: e.name,
+          rank: e.rank
+        }
+      })
+    
+      res.status(201).json(users)
+    } else {
+      res.status(401).json({ 'message': 'Unauthorized' });
+    }
+  }
+
+  res.status(500);
+}
+
+module.exports = { 
+  updateUser,
+  getAllUsers
+};

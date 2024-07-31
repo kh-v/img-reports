@@ -51,11 +51,12 @@ export default function Login(props) {
         const username = response?.data?.username;
         const rank = response?.data?.rank;
         const name = response?.data?.name;
+        const admin = response?.data?.admin;
         
         // console.log(cookies)
        setCookie('jwt',refreshToken)
 
-        setUserAuth({ user, accessToken, name, username, rank });
+        setUserAuth({ user, accessToken, name, username, rank, admin });
         setUser('');
         setPwd('');
         navigate(from, { replace: true });
