@@ -11,5 +11,8 @@ router.route('/get_summary')
 
 router.route('/get_rate_summary')
     .get(commissionController.getRateSummary);
+
+router.route('/last_scan')
+    .get(commissionController.lastScan);
     
 module.exports = router;

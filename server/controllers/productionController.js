@@ -50,6 +50,21 @@ const getProductions = async (req, res) => {
   res.send(data)
 }
 
+
+const lastScan = async (req, res) => {
+  let { agentCode } = req.query;
+
+  let lastScanned = {}
+  if (fs.existsSync(`${__dirname}/../../storage/models/lastScanned.json`)) {
+    lastScanned = JSON.parse(fs.readFileSync(`${__dirname}/../../storage/models/lastScanned.json`).toString())
+  }
+
+  let d = lastScanned[agentCode] ? lastScanned[agentCode].production || null : null
+
+  res.send({ d })
+}
+
 module.exports = {
-  getProductions
+  getProductions,
+  lastScan
 }
