@@ -21,7 +21,8 @@ import {
   CommissionListContainer,
   CommissionListDateFilters,
   CommissionListDateBtn,
-  CommissionListFilters
+  CommissionListFilters, 
+  LastScanTS
 } from './team.style'
 
 const {
@@ -49,6 +50,7 @@ export default function Team() {
   const [reportingDatesSummary, SetReportingDatesSummary] = useState([])
   const [type, SetType] = useState('yearly')
   const [activeDateFilter, SetActiveDateFilter] = useState('30D')
+  const [lastScan, SetLastScan] = useState(null)
 
   const [listFilters, SetListFilters] = useState({
     dateFrom: moment().subtract(30, 'days').format('YYYY-MM-DD'),
@@ -60,6 +62,17 @@ export default function Team() {
     keyword: ''
   })
 
+  const getLastScanned = (agentCode) => {
+    axiosPrivate.get(`${REACT_APP_SERVER}/team/last_scan\?agentCode\=${agentCode}`)
+    .then(res => {
+      if (res.data.d) {
+        SetLastScan(res.data.d)
+      }
+    }).catch(err => {
+
+    })
+  }
+
   const getTeam = (agentCode) => {
     axiosPrivate.get(`${REACT_APP_SERVER}/team/get_team\?agentCode\=${agentCode}`)
     .then(res => {
@@ -70,17 +83,13 @@ export default function Team() {
       let all_data = []
       for (let i = 0; i < types.length; i++) {
         const type = types[i];
-        console.log(type)
         let type_data = res.data[type] || []
-        console.log(type_data)
         type_data = _.uniqBy(type_data, 'agent_code')
-        console.log(type,type_data)
         if (type_data.length > 0) all_data = all_data.concat(type_data.map(e => {
           e.type = type
           e.date = moment(e.date_started,'MM/DD/YYYY').format('YYYY-MM-DD')
           return e
         }));
-        console.log(all_data)
         for (let ii = 0; ii < type_data.length; ii++) {
           const d = type_data[ii];
           let date = moment(d.date_started, 'MM/DD/YYYY')
@@ -116,6 +125,7 @@ export default function Team() {
 
   useEffect(() => {
     getTeam(activeAgent.username)
+    getLastScanned(activeAgent.username)
   }, [])
 
   const dateFrom = moment(  listFilters.dateFrom, 'YYYY-MM-DD')
@@ -143,10 +153,11 @@ export default function Team() {
     return true
   }), 'date', 'desc')
 
-  console.log(all_team)
 
   return (
     <TeamContainer>
+      <LastScanTS>Last Scan Time: { lastScan ? moment(lastScan,'X').tz('Asia/Manila').format('DDDD MMM D, YYYY h:mm A') : '-' }</LastScanTS>
+
       <TypeContainer>
         <TypeBtn active={type === 'yearly'} onClick={() => SetType('yearly')}>Yearly</TypeBtn>
         <TypeBtn active={type === 'monthly'} onClick={() => SetType('monthly')}>Monthly</TypeBtn>
@@ -195,7 +206,7 @@ export default function Team() {
             </TableHeaders>
             <TableBody>
                 {
-                  _.orderBy(_.toArray(montlySummary), e => parseInt(moment(e,'MMMM YYY').format('YYYYMMDD')), 'desc').map(e => (
+                  _.orderBy(_.toArray(montlySummary), e => parseInt(moment(e.month,'MMMM YYYY').format('X')), 'desc').map(e => (
                     <TableRow>
                       <TableCell>{e.month}</TableCell>  
                       {
@@ -349,7 +360,7 @@ export default function Team() {
                 <TableHeader>Rank</TableHeader>
                 <TableHeader>Sponsor</TableHeader>
                 <TableHeader>SMD</TableHeader>
-                <TableHeader>Tyoe</TableHeader>
+                <TableHeader>Type</TableHeader>
               </TableHeaders>
               <TableBody>
                 {

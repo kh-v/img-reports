@@ -167,3 +167,12 @@ export const CommissionListFilters = styled.div`
     }
   }
 `
+
+export const LastScanTS = styled.div`
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  color: #ffffff;
+  font-style: italic;
+  font-size: 12px;
+`

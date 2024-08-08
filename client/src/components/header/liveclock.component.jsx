@@ -24,7 +24,7 @@ export default class Liveclock extends Component {
 
   render() {
     return (
-      <div style={{display:'inline-flex'}}><div  style={{width:'70px'}}>{this.state.date.tz('America/New_York').format('h:mm:ss A')}</div><div style={{width:'200px',paddingRight:'5px'}}>{this.state.date.tz('America/New_York').format('dddd, MMMM D, YYYY')}</div></div>
+      <div style={{display:'inline-flex'}}><div  style={{width:'70px'}}>{this.state.date.tz('Asia/Manila').format('h:mm:ss A')}</div><div style={{width:'200px',paddingRight:'5px'}}>{this.state.date.tz('Asia/Manila').format('dddd, MMMM D, YYYY')}</div></div>
     );
   }
 }

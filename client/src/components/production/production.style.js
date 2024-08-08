@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-export const CommissionContainer = styled.div`
+export const ProductionContainer = styled.div`
   background: #000000;
   box-sizing: border-box;
   position: relative;
@@ -75,6 +75,8 @@ export const TableRow = styled.tr`
 export const TableCell = styled.td`
   font-weight: 500;
   min-width: 100px;
+  padding-left: 5px;
+  padding-right: 5px;
 `
 
 
@@ -167,7 +169,6 @@ export const CommissionListFilters = styled.div`
     }
   }
 `
-
 
 export const LastScanTS = styled.div`
   position: absolute;

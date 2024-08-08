@@ -21,7 +21,8 @@ import {
   CommissionListContainer,
   CommissionListDateFilters,
   CommissionListDateBtn,
-  CommissionListFilters
+  CommissionListFilters,
+  LastScanTS
 } from './commission.style'
 
 const {
@@ -49,6 +50,7 @@ export default function Commission() {
   const [commissionList, SetCommissionList] = useState([])
   const [type, SetType] = useState('yearly')
   const [activeDateFilter, SetActiveDateFilter] = useState('30D')
+  const [lastScan, SetLastScan] = useState(null)
 
   const [listFilters, SetListFilters] = useState({
     dateFrom: moment().subtract(30, 'days').format('YYYY-MM-DD'),
@@ -59,6 +61,17 @@ export default function Commission() {
     rate: 'all',
     keyword: ''
   })
+
+  const getLastScanned = (agentCode) => {
+    axiosPrivate.get(`${REACT_APP_SERVER}/commission/last_scan\?agentCode\=${agentCode}`)
+    .then(res => {
+      if (res.data.d) {
+        SetLastScan(res.data.d)
+      }
+    }).catch(err => {
+
+    })
+  }
 
   const getCommissionSummary = (agentCode) => {
     axiosPrivate.get(`${REACT_APP_SERVER}/commission/get_summary\?agentCode\=${agentCode}`)
@@ -113,7 +126,6 @@ export default function Commission() {
   const getCommissionList = (agentCode, dateFrom,dateTo) => {
     axiosPrivate.get(`${REACT_APP_SERVER}/commission/get_commissions\?agentCode\=${agentCode}&dateFrom=${dateFrom}&dateTo=${dateTo}`)
     .then(res => {
-    //  console.log(res.data)
      SetCommissionList(res.data)
       
     })
@@ -127,6 +139,7 @@ export default function Commission() {
   useEffect(() => {
     getCommissionSummary(activeAgent.username)
     getRateCommissionSummary(activeAgent.username)
+    getLastScanned(activeAgent.username)
     getCommissionList(activeAgent.username, listFilters.dateFrom, listFilters.dateTo)
   }, [])
 
@@ -137,7 +150,6 @@ export default function Commission() {
     rates: _.uniq(_.map(commissionList, 'Rate')),
   }
 
-  console.log(filterOptions)
 
   const filteredCommissionList =  commissionList.filter(e => {
     if (listFilters.date !== 'all' && listFilters.date !== e.reporting_date) return false
@@ -150,6 +162,8 @@ export default function Commission() {
 
   return (
     <CommissionContainer>
+      <LastScanTS>Last Scan Time: { lastScan ? moment(lastScan,'X').tz('Asia/Manila').format('DDDD MMM D, YYYY h:mm A') : '-' }</LastScanTS>
+
       <TypeContainer>
         <TypeBtn active={type === 'yearly'} onClick={() => SetType('yearly')}>Yearly</TypeBtn>
         <TypeBtn active={type === 'monthly'} onClick={() => SetType('monthly')}>Monthly</TypeBtn>

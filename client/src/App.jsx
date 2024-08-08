@@ -11,6 +11,7 @@ import Main from './components/main/main.component'
 import Commission from './components/commission/commission.component';
 import Login from './components/login/login.component';
 import Team from './components/team/team.component';
+import Production from './components/production/production.component';
 
 import {
   AppContainer
@@ -66,6 +67,17 @@ function App() {
                     SetUser={SetUser}
                     />
                   <Team />
+                </div>
+              } />
+            <Route exact path="/production"  element={
+                <div>
+                  <Header name={'KHLAB'} 
+                    SetOpenSetting={SetOpenSetting}
+                    layout={layout}
+                    SetLayout={SetLayout} 
+                    SetUser={SetUser}
+                    />
+                  <Production />
                 </div>
               } />
           </Route>

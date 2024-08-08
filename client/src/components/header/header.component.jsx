@@ -86,11 +86,14 @@ export default function Header(props) {
     case '/production':
       pageName = "Production Reports"
       break
+    case '/':
+      pageName = "Home"
+      break
   }
 
   return (
     <HeaderContainer>
-      <div name={'PROS'}>{auth.name} <span style={{fontSize: '12px',fontStyle:'italic'}}>({auth.rank}: {auth.username})</span> - {pageName}</div>
+      <div  onClick={() => navigate('/') } name={'PROS'}>{auth.name} <span style={{fontSize: '12px',fontStyle:'italic'}}>({auth.rank}: {auth.username})</span> - {pageName}</div>
 
       <StatusContainer>
         <StatusDateTime><Liveclock /><StatusDotIcon fill={"#5CFD75"} /></StatusDateTime>
@@ -100,6 +103,10 @@ export default function Header(props) {
         openMenu ?
 
         <Menu onMouseLeave={() => SetOpenMenu(false)}> 
+            <MenuItem 
+            onClick={() => navigate('/') }
+            active={window.location.pathname === '/'}
+            >Home</MenuItem>
             <MenuItem 
             onClick={() => navigate('/commission') }
             active={window.location.pathname === '/commission'}
