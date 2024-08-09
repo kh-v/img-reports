@@ -162,7 +162,7 @@ export default function Commission() {
 
   return (
     <CommissionContainer>
-      <LastScanTS>Last Scan Time: { lastScan ? moment(lastScan,'X').tz('Asia/Manila').format('DDDD MMM D, YYYY h:mm A') : '-' }</LastScanTS>
+      <LastScanTS>Last Scan Time: { lastScan ? moment(lastScan,'X').tz('Asia/Manila').format('dddd, MMM D, YYYY h:mm A') : '-' }</LastScanTS>
 
       <TypeContainer>
         <TypeBtn active={type === 'yearly'} onClick={() => SetType('yearly')}>Yearly</TypeBtn>

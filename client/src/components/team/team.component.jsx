@@ -318,7 +318,7 @@ export default function Team() {
               <select onChange={el => SetListFilters({ ...listFilters, date:  el.target.value})}>
                 <option value={'all'}>All</option>
                 {
-                  filterOptions.dates.map(d => <option value={d}>{moment(d,'YYYY-MM-DD').format('MMMM D, YYYY')}</option>)
+                  filterOptions.dates.map(d => <option value={d}>{moment(d,'YYYY-MM-DD').format('dddd D, YYYY')}</option>)
                 }
               </select>
             </div>
