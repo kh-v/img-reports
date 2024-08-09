@@ -151,14 +151,15 @@ export default function Commission() {
   }
 
 
-  const filteredCommissionList =  commissionList.filter(e => {
+  const filteredCommissionList =  _.orderBy(commissionList.filter(e => {
     if (listFilters.date !== 'all' && listFilters.date !== e.reporting_date) return false
     if (listFilters.agent !== 'all' && listFilters.agent !== e['Agent Name']) return false
     if (listFilters.buss_type !== 'all' && listFilters.buss_type !== e['Buss Type']) return false
     if (listFilters.rate !== 'all' && parseFloat(listFilters.rate) !== parseFloat(e['Rate'])) return false
     if (listFilters.keyword.trim() !== '' && e['Name of Insure'].toLowerCase().indexOf(listFilters.keyword.toLowerCase().trim()) === -1) return false
     return true
-  })
+  }), 'reporting_date', 'desc')
+  
 
   return (
     <CommissionContainer>
