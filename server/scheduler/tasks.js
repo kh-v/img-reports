@@ -18,22 +18,6 @@ let commissionTaskStatus = {}
 let teamTaskStatus = {}
 let productionTaskStatus = {}
 
-
-let lastScanned = {}
-
-if (fs.existsSync('../../storage/models/lastScanned.json')) {
-  lastScanned = JSON.parse(fs.readFileSync('../../storage/models/lastScanned.json').toString())
-} else {
-  fs.writeFileSync(`${__dirname}/../../storage/models/lastScanned.json`, JSON.stringify(lastScanned, null, 4))
-}
-
-const updateLastScanned = (username, type) => {
-  if (!lastScanned[username]) lastScanned[username] = {}
-  lastScanned[username][type] = moment().format('X')
-  fs.writeFileSync(`${__dirname}../../storage/models/lastScanned.json`, JSON.stringify(lastScanned, null, 4))
-}
-
-
 const updateCommissionReportsTask = async (username=null) => {
   let users = await getAllUsers()
   if (username) {
@@ -75,7 +59,6 @@ const updateCommissionReportsTask = async (username=null) => {
               return new Promise(async (resolve) => {
                 commissionTaskStatus[username] = true
                 await updateReports(username, password, 'commission')
-                updateLastScanned(username.toUpperCase(), 'commission')
                 commissionTaskStatus[username] = false
                 logEvents(`[commission] ${user.username} - Done Checking`,'task.log')
                 resolve()
@@ -115,7 +98,6 @@ const updateTeamReportsTask =  async (username=null) => {
           return new Promise(async (resolve) => {
             teamTaskStatus[username] = true
             await updateReports(username, password, 'team')
-            updateLastScanned(username.toUpperCase(), 'team')
             teamTaskStatus[username] = false
             logEvents(`[team] ${user.username} - Done Checking`,'task.log')
             resolve()
@@ -148,7 +130,6 @@ const updateProductionReportsTask =  async (username=null) => {
           return new Promise(async (resolve) => {
             productionTaskStatus[username] = true
             await updateReports(username, password, 'production')
-            updateLastScanned(username.toUpperCase(), 'production')
             productionTaskStatus[username] = false
             logEvents(`[production] ${user.username} - Done Checking`,'task.log')
             resolve()

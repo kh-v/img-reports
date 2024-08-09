@@ -6,6 +6,21 @@ const puppeteer = require('puppeteer');
 const moment = require('moment-timezone');
 const _ = require('lodash')
 
+let lastScanned = {}
+
+if (fs.existsSync(`${__dirname}/../storage/models/lastScanned.json `)) {
+  lastScanned = JSON.parse(fs.readFileSync(`${__dirname}/../storage/models/lastScanned.json `).toString())
+} else {
+  fs.writeFileSync(`${__dirname}/../storage/models/lastScanned.json `, JSON.stringify(lastScanned, null, 4))
+}
+
+const updateLastScanned = (username, type) => {
+  if (!lastScanned[username]) lastScanned[username] = {}
+  lastScanned[username][type] = moment().format('X')
+  fs.writeFileSync(`${__dirname}../storage/models/lastScanned.json `, JSON.stringify(lastScanned, null, 4))
+}
+
+
 const delay = (time) => {
     return new Promise((resolve) => { 
         setTimeout(resolve, time)
@@ -594,13 +609,7 @@ const productionReport = async (ax,username) => {
 
 
 const updateReports = async (username, password, report_type) => {
-    // const username = '441485PH'
-    // const password = 'rafi'
-    // const username = '450723PH'
-    // const password = 'Tita@1970'
-    // const username = '464519PH'
-    // const password = 'zysij'
-    username = username.toString()
+    username = username.toUpperCase()
     if (!fs.existsSync(`${__dirname}/../storage/data/${username}`)) {
         fs.mkdirSync(`${__dirname}/../storage/data/${username}`, { recursive: true })
     }
@@ -682,12 +691,15 @@ const updateReports = async (username, password, report_type) => {
         switch(report_type) {
             case 'commission':
                 await commissionReports(ax, username)
+                updateLastScanned(username, 'commission')
                 break
             case 'team':
                 await teamReport(ax, username)
+                updateLastScanned(username, 'team')
                 break
             case 'production':
                 await productionReport(ax, username)
+                updateLastScanned(username, 'production')
                 break
             default:
                 console.log('Invalid Report Type')
