@@ -8,16 +8,16 @@ const _ = require('lodash')
 
 let lastScanned = {}
 
-if (fs.existsSync(`${__dirname}/../storage/models/lastScanned.json `)) {
-  lastScanned = JSON.parse(fs.readFileSync(`${__dirname}/../storage/models/lastScanned.json `).toString())
+if (fs.existsSync(`${__dirname}/../storage/models/lastScanned.json`)) {
+  lastScanned = JSON.parse(fs.readFileSync(`${__dirname}/../storage/models/lastScanned.json`).toString())
 } else {
-  fs.writeFileSync(`${__dirname}/../storage/models/lastScanned.json `, JSON.stringify(lastScanned, null, 4))
+  fs.writeFileSync(`${__dirname}/../storage/models/lastScanned.json`, JSON.stringify(lastScanned, null, 4))
 }
 
 const updateLastScanned = (username, type) => {
   if (!lastScanned[username]) lastScanned[username] = {}
   lastScanned[username][type] = moment().format('X')
-  fs.writeFileSync(`${__dirname}/../storage/models/lastScanned.json `, JSON.stringify(lastScanned, null, 4))
+  fs.writeFileSync(`${__dirname}/../storage/models/lastScanned.json`, JSON.stringify(lastScanned, null, 4))
 }
 
 
