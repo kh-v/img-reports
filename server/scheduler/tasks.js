@@ -11,7 +11,8 @@ const {
 } = require('../utils/crypto')
 
 const {
-  updateReports
+  updateReports,
+  loginCookies
 } = require('../../backend/scanner')
 
 let commissionTaskStatus = {}
